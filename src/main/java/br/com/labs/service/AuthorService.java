@@ -59,12 +59,6 @@ public class AuthorService {
         return AuthorResponse.fromEntity(author);
     }
 
-    /**
-     * Fetches author with all their musics.
-     * This method is cached using Redis to improve performance.
-     * Cache key: authorMusics::{authorId}
-     * TTL: 5 minutes (configured in RedisConfig)
-     */
     @Transactional(readOnly = true)
     @Cacheable(value = RedisConfig.AUTHOR_MUSICS_CACHE, key = "#id")
     public AuthorWithMusicsResponse findByIdWithMusics(Long id) {
@@ -93,7 +87,6 @@ public class AuthorService {
                     return new ResourceNotFoundException("Author", "id", id);
                 });
 
-        // Check if email is being changed and if new email already exists
         if (!author.getEmail().equals(request.email()) && authorRepository.existsByEmail(request.email())) {
             log.warn("Attempt to update author with existing email: {}", request.email());
             throw new BusinessException("Email already exists: " + request.email());

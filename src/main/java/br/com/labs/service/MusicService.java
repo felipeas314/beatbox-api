@@ -77,7 +77,6 @@ public class MusicService {
                     return new ResourceNotFoundException("Music", "id", id);
                 });
 
-        // If author is being changed, verify new author exists
         if (!music.getAuthor().getId().equals(request.authorId())) {
             Author newAuthor = authorRepository.findById(request.authorId())
                     .orElseThrow(() -> {
@@ -120,10 +119,6 @@ public class MusicService {
         return PageResponse.fromPage(page, MusicResponse::fromEntity);
     }
 
-    /**
-     * Search musics using Criteria API with dynamic filters.
-     * This method demonstrates the use of JPA Specifications for flexible querying.
-     */
     @Transactional(readOnly = true)
     public PageResponse<MusicResponse> search(MusicSearchRequest searchRequest, Pageable pageable) {
         log.info("Searching musics with filters - name: {}, genre: {}, authorId: {}, duration: {}-{}",
