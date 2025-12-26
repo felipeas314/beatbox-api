@@ -33,17 +33,14 @@ public class RedisConfig {
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         log.info("Configuring Redis Cache Manager");
 
-        // Default cache configuration
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(10))
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
                 .disableCachingNullValues();
 
-        // Specific cache configurations
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
 
-        // Cache for author musics - TTL of 5 minutes
         cacheConfigurations.put(AUTHOR_MUSICS_CACHE, RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(5))
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
@@ -59,12 +56,8 @@ public class RedisConfig {
                 .build();
     }
 
-    /**
-     * Scheduled task to clear author musics cache every hour.
-     * This is useful for ensuring data consistency in case of external database changes.
-     */
     @CacheEvict(allEntries = true, cacheNames = {AUTHOR_MUSICS_CACHE})
-    @Scheduled(fixedDelay = 3600000) // 1 hour
+    @Scheduled(fixedDelay = 3600000)
     public void evictAuthorMusicsCache() {
         log.info("Evicting all entries from {} cache", AUTHOR_MUSICS_CACHE);
     }
