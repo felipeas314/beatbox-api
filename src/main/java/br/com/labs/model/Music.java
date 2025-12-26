@@ -1,94 +1,88 @@
 package br.com.labs.model;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-
-import com.fasterxml.jackson.annotation.JsonIdentityReference;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 
 @Entity
-public class Music {
+@Table(name = "music")
+public class Music extends BaseEntity {
 
-	@Id
-	@GeneratedValue
-	private Integer id;
+    @NotBlank(message = "Music name is required")
+    @Size(min = 1, max = 255, message = "Name must be between 1 and 255 characters")
+    @Column(nullable = false)
+    private String name;
 
-	private String name;
+    @NotNull(message = "Duration is required")
+    @Positive(message = "Duration must be positive")
+    @Column(name = "duration_seconds", nullable = false)
+    private Integer durationSeconds;
 
-	private int time;
+    @Size(max = 100, message = "Genre must be at most 100 characters")
+    private String genre;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "author_id")
-//	@JsonManagedReference
-	private Author author;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id", nullable = false)
+    @JsonIgnore
+    private Author author;
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		return result;
-	}
+    public Music() {
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Music other = (Music) obj;
-		if (id == null) {
-			if (other.id != null)
-				return false;
-		} else if (!id.equals(other.id))
-			return false;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		return true;
-	}
+    public Music(String name, Integer durationSeconds, String genre, Author author) {
+        this.name = name;
+        this.durationSeconds = durationSeconds;
+        this.genre = genre;
+        this.author = author;
+    }
 
-	public Integer getId() {
-		return id;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setId(Integer id) {
-		this.id = id;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public Integer getDurationSeconds() {
+        return durationSeconds;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setDurationSeconds(Integer durationSeconds) {
+        this.durationSeconds = durationSeconds;
+    }
 
-	public int getTime() {
-		return time;
-	}
+    public String getGenre() {
+        return genre;
+    }
 
-	public void setTime(int time) {
-		this.time = time;
-	}
+    public void setGenre(String genre) {
+        this.genre = genre;
+    }
 
-	public Author getAuthor() {
-		return author;
-	}
+    public Author getAuthor() {
+        return author;
+    }
 
-	public void setAuthor(Author author) {
-		this.author = author;
-	}
+    public void setAuthor(Author author) {
+        this.author = author;
+    }
 
+    @Override
+    public String toString() {
+        return "Music{" +
+                "id=" + getId() +
+                ", name='" + name + '\'' +
+                ", durationSeconds=" + durationSeconds +
+                ", genre='" + genre + '\'' +
+                '}';
+    }
 }

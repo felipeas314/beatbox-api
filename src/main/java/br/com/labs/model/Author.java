@@ -1,76 +1,85 @@
 package br.com.labs.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.Transient;
-import javax.validation.constraints.NotBlank;
-
-import org.hibernate.annotations.LazyGroup;
-import org.hibernate.annotations.LazyToOne;
-import org.hibernate.annotations.LazyToOneOption;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 @Entity
-public class Author {
+@Table(name = "author")
+public class Author extends BaseEntity {
 
-	@Id
-	@GeneratedValue
-	private Integer id;
+    @NotBlank(message = "Name is required")
+    @Size(min = 2, max = 255, message = "Name must be between 2 and 255 characters")
+    @Column(nullable = false)
+    private String name;
 
-	@NotBlank
-	private String name;
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email must be valid")
+    @Column(nullable = false, unique = true)
+    private String email;
 
-	@NotBlank
-	private String email;
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Music> musics = new ArrayList<>();
 
-	@OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
-	@JsonInclude(content = Include.NON_NULL)
-	protected List<Music> musics;
+    public Author() {
+    }
 
-	public Integer getId() {
-		return id;
-	}
+    public Author(String name, String email) {
+        this.name = name;
+        this.email = email;
+    }
 
-	public void setId(Integer id) {
-		this.id = id;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public String getEmail() {
+        return email;
+    }
 
-	public String getEmail() {
-		return email;
-	}
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+    public List<Music> getMusics() {
+        return musics;
+    }
 
-	public List<Music> getListMusics() {
-		return musics;
-	}
+    public void setMusics(List<Music> musics) {
+        this.musics = musics;
+    }
 
-	public void setMusics(List<Music> musics) {
-		this.musics = musics;
-	}
+    public void addMusic(Music music) {
+        musics.add(music);
+        music.setAuthor(this);
+    }
 
-	@Override
-	public String toString() {
-		return "Author [id=" + id + ", name=" + name + ", email=" + email + ", musics=" + musics + "]";
-	}
+    public void removeMusic(Music music) {
+        musics.remove(music);
+        music.setAuthor(null);
+    }
+
+    @Override
+    public String toString() {
+        return "Author{" +
+                "id=" + getId() +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                '}';
+    }
 }
