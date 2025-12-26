@@ -13,6 +13,15 @@ REST API para gerenciamento de autores e músicas, construída com Spring Boot 3
 - **OpenAPI 3 / Swagger** - Documentação da API
 - **Docker Compose** - Orquestração de containers
 
+### Observabilidade
+
+- **Prometheus** - Coleta de métricas
+- **Grafana** - Visualização e dashboards
+- **Loki** - Agregação de logs
+- **Tempo** - Distributed tracing
+- **Micrometer** - Instrumentação de métricas
+- **OpenTelemetry** - Tracing distribuído
+
 ## Estrutura do Projeto
 
 ```
@@ -46,6 +55,10 @@ docker-compose up -d
 Isso inicia:
 - PostgreSQL na porta `5438`
 - Redis na porta `6379`
+- Prometheus na porta `9090`
+- Grafana na porta `3000`
+- Loki na porta `3100`
+- Tempo na porta `3200`
 
 ### 2. Rodar a aplicação
 
@@ -58,6 +71,8 @@ Isso inicia:
 - **API**: http://localhost:8080/api/v1
 - **Swagger UI**: http://localhost:8080/swagger-ui.html
 - **API Docs**: http://localhost:8080/api-docs
+- **Grafana**: http://localhost:3000 (admin/admin)
+- **Prometheus**: http://localhost:9090
 
 ## Endpoints
 
@@ -92,8 +107,8 @@ Isso inicia:
 curl -X POST http://localhost:8080/api/v1/authors \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "John Lennon",
-    "email": "john@beatles.com"
+    "name": "John LennoAnAAAAA",
+    "email": "johAAn@bAeatles.com"
   }'
 ```
 
@@ -103,7 +118,7 @@ curl -X POST http://localhost:8080/api/v1/authors \
 curl -X POST http://localhost:8080/api/v1/musics \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Imagine",
+    "name": "Imagine234",
     "durationSeconds": 183,
     "genre": "Rock",
     "authorId": 1
@@ -131,6 +146,58 @@ docker-compose --profile dev up -d
 ```
 
 Acesse: http://localhost:8081
+
+## Observabilidade
+
+A stack de observabilidade inclui:
+
+### Grafana
+
+Acesse em http://localhost:3000 (admin/admin)
+
+**Dashboards disponíveis:**
+- **Melodify API - Spring Boot Dashboard**: Métricas da aplicação, JVM, conexões, cache
+
+**Datasources pré-configurados:**
+- Prometheus (métricas)
+- Loki (logs)
+- Tempo (traces)
+
+### Prometheus
+
+Acesse em http://localhost:9090
+
+Coleta métricas da aplicação via endpoint `/actuator/prometheus`:
+- Request rate e latência por endpoint
+- JVM memory e threads
+- HikariCP connection pool
+- Redis cache hits/misses
+
+### Loki
+
+Agregação de logs em formato estruturado (JSON).
+
+Os logs são enviados diretamente da aplicação via `loki4j-logback-appender`.
+
+Labels disponíveis: `application`, `host`, `level`
+
+### Tempo
+
+Distributed tracing via OpenTelemetry.
+
+Traces são correlacionados com logs através do `traceId`.
+
+### Métricas Disponíveis
+
+```bash
+# Ver métricas no Prometheus format
+curl http://localhost:8080/actuator/prometheus
+
+# Ver métricas específicas
+curl http://localhost:8080/actuator/metrics/http.server.requests
+curl http://localhost:8080/actuator/metrics/jvm.memory.used
+curl http://localhost:8080/actuator/metrics/cache.gets
+```
 
 ## Configuração
 
@@ -191,6 +258,21 @@ As migrations Flyway estão em `src/main/resources/db/migration/`:
 │    DTOs     │     │    Cache    │     │  Database   │
 │  (Records)  │     │   (Redis)   │     │ (PostgreSQL)│
 └─────────────┘     └─────────────┘     └─────────────┘
+
+              Observabilidade
+┌─────────────────────────────────────────────────────┐
+│                                                     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐          │
+│  │Prometheus│  │   Loki   │  │  Tempo   │          │
+│  │ (metrics)│  │  (logs)  │  │ (traces) │          │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘          │
+│       │             │             │                 │
+│       └─────────────┼─────────────┘                 │
+│                     ▼                               │
+│              ┌───────────┐                          │
+│              │  Grafana  │                          │
+│              └───────────┘                          │
+└─────────────────────────────────────────────────────┘
 ```
 
 ## Licença
