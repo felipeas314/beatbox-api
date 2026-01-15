@@ -1,6 +1,6 @@
 spring:
   application:
-    name: music-api
+    name: beatbox-api
 
   datasource:
     url: jdbc:postgresql://localhost:5438/music_db
@@ -79,6 +79,13 @@ management:
   endpoint:
     health:
       show-details: when_authorized
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
   metrics:
     tags:
       application: ${spring.application.name}

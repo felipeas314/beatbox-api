@@ -823,8 +823,8 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Melodify API - Spring Boot Dashboard",
-  "uid": "melodify-spring-boot",
+  "title": "Beatbox API - Spring Boot Dashboard",
+  "uid": "beatbox-spring-boot",
   "version": 1,
   "weekStart": ""
 }

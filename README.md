@@ -1,4 +1,4 @@
-# Melodify API
+# Beatbox API
 
 REST API para gerenciamento de autores e músicas, construída com Spring Boot 3.4 e Java 21.
 
@@ -156,7 +156,7 @@ A stack de observabilidade inclui:
 Acesse em http://localhost:3000 (admin/admin)
 
 **Dashboards disponíveis:**
-- **Melodify API - Spring Boot Dashboard**: Métricas da aplicação, JVM, conexões, cache
+- **Beatbox API - Spring Boot Dashboard**: Métricas da aplicação, JVM, conexões, cache
 
 **Datasources pré-configurados:**
 - Prometheus (métricas)
@@ -217,12 +217,41 @@ SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/music_db
 SPRING_DATA_REDIS_HOST: redis
 ```
 
+### Perfil de Produção (Otimizado)
+
+O perfil `prod` inclui otimizações para reduzir consumo de memória e CPU:
+
+```bash
+# Rodar com perfil de produção
+./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
+
+# Ou via variável de ambiente
+SPRING_PROFILES_ACTIVE=prod java -jar app.jar
+```
+
+**Otimizações aplicadas:**
+
+| Configuração | Dev | Prod | Economia |
+|--------------|-----|------|----------|
+| HikariCP pool | 10 conexões | 5 conexões | ~50% memória DB |
+| Redis pool | 8 conexões | 4 conexões | ~50% memória Redis |
+| Tracing sample | 100% | 10% | ~90% CPU tracing |
+| Log level | DEBUG | INFO/WARN | Menos I/O |
+| Swagger | Habilitado | Desabilitado | Menos memória |
+| Async logging | Síncrono | Assíncrono | Menos bloqueio |
+
+**JVM (Dockerfile):**
+- Heap: 256MB-512MB
+- Metaspace: 128MB máximo
+- G1GC com pause de 100ms
+- String deduplication
+
 ## Docker
 
 ### Build da imagem
 
 ```bash
-docker build -t melodify-api .
+docker build -t beatbox-api .
 ```
 
 ### Rodar tudo em containers
@@ -238,6 +267,53 @@ docker-compose up -d
 ```bash
 ./mvnw test
 ```
+
+## Kubernetes
+
+Os manifests Kubernetes estão em `k8s/`:
+
+```
+k8s/
+├── deployment.yaml    # Deployment com 2 réplicas
+├── service.yaml       # ClusterIP service
+├── configmap.yaml     # Configurações da aplicação
+├── secret.yaml        # Credenciais (template)
+├── hpa.yaml           # Horizontal Pod Autoscaler
+├── ingress.yaml       # Ingress NGINX
+└── pdb.yaml           # Pod Disruption Budget
+```
+
+### Deploy no cluster
+
+```bash
+# Criar namespace (opcional)
+kubectl create namespace beatbox
+
+# Aplicar todos os manifests
+kubectl apply -f k8s/ -n beatbox
+
+# Verificar status
+kubectl get pods -n beatbox
+kubectl get svc -n beatbox
+```
+
+### Recursos configurados
+
+| Recurso | Request | Limit |
+|---------|---------|-------|
+| CPU | 100m | 500m |
+| Memória | 256Mi | 512Mi |
+
+### Autoscaling
+
+- **Min replicas**: 2
+- **Max replicas**: 10
+- **Scale up**: CPU > 70% ou Memória > 80%
+
+### Probes
+
+- **Liveness**: `/actuator/health/liveness`
+- **Readiness**: `/actuator/health/readiness`
 
 ## Migrations
 
